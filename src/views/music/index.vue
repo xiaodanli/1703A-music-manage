@@ -99,9 +99,9 @@ export default {
                 music_name:'',
                 singer_name:'',
                 pic:'',
-                isup:'1',
-                editId:''
+                isup:'1'
             },
+            editId:'',
             rules:{
                 music_name: [
                     {required: true, message: '请输入歌名', trigger: 'blur'}
@@ -158,7 +158,7 @@ export default {
                                 });
                                 this.dialogVisible = false;
                                 let index = this.musicList.findIndex(item => item.id === this.editId);
-                                this.musicList.splice(index,1,{...this.music,id:this.isEdit});
+                                this.musicList.splice(index,1,{...this.music,id:this.editId});
                                 this.reset();
                             }
                         })
@@ -200,7 +200,7 @@ export default {
             this.music.singer_name = editObj.singer_name;
             this.music.isup = editObj.isup;
             this.music.pic = editObj.pic;
-            this.isEdit = editObj.id;
+            this.editId = editObj.id;
         },
         del(){
             this.$api.music.del({id:this.delId}).then(res => {
