@@ -142,6 +142,10 @@ export default {
                 this.setName(res.data.data.username);
             }
         })
+        //测试jsonp
+        this.$api.music.singer().then(res => {
+            console.log(res);
+        })
     },
     methods:{
         ...mapMutations('user',['setName']),
@@ -162,6 +166,8 @@ export default {
                 if(res.data.code === 1){
                     this.musicList = res.data.data;
                     this.total= res.data.total;
+                }else if(res.data.code === 2){
+                    this.$router.push('/login')
                 }
             })
         },
