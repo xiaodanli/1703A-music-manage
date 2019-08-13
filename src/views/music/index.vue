@@ -1,13 +1,13 @@
 <template>
     <el-container class="music-wrap">
         <el-header>
-            <span>欢迎：xxx</span>
-            <el-button size="mini">退出</el-button>
+            <span>欢迎：{{username}}</span>
+            <el-button size="mini" @click="quit">退出</el-button>
         </el-header>
         <el-container>
             <el-aside width="200px">Aside</el-aside>
             <el-main>
-                <el-button @click="dialogVisible = true">添加</el-button>
+                <el-button @click="addItem">添加</el-button>
                 <el-table
                     :data="musicList"
                     style="width: 100%;margin-top:10px;">
@@ -22,7 +22,7 @@
                     <el-table-column label="歌手" prop="singer_name"></el-table-column>
                     <el-table-column label="图片" prop="pic">
                         <template slot-scope="scope">
-                            <img :src="scope.row.pic" alt="">
+                            <img :src="scope.row.pic" alt="" style="width:80px;height:80px;">
                         </template>
                     </el-table-column>
                     <el-table-column label="是否上架" prop="isup">
@@ -45,7 +45,14 @@
                         </template>
                     </el-table-column>
                 </el-table>
-                
+                <el-pagination
+                background
+                layout="prev, pager, next"
+                :page-size="limit"
+                :total="total"
+                @current-change="change"
+                >
+                </el-pagination>
             </el-main>
         </el-container>
         <el-dialog
@@ -62,7 +69,7 @@
                 </el-form-item>
                 <el-form-item label="上传图片" prop="pic">
                     <input type="file" @change="upload">
-                    <img :src="music.pic" alt="">
+                    <img :src="music.pic" alt=""  style="width:80px;height:80px;">
                 </el-form-item>
                 <el-form-item label="是否上架" prop="isup">
                     <el-radio-group v-model="music.isup">
@@ -90,6 +97,7 @@
     </el-container>  
 </template>
 <script>
+import {mapMutations,mapState} from 'vuex'
 export default {
     data(){
         return {
@@ -114,18 +122,54 @@ export default {
                 ]
             },
             isDel:false,
-            delId:''
+            delId:'',
+            pagenum:1,//当前页码
+            limit:2,   //每页展示的条数
+            total:0
         }
     },
+    computed:{
+        ...mapState({
+            username:state => state.user.username
+        })
+    },
     created(){
-        this.$api.music.getList().then(res => {
-            console.log(res);
+        //获取当前页的数据
+        this.getList();
+        //获取个人信息
+        this.$api.user.userinfo().then(res => {
             if(res.data.code === 1){
-                this.musicList = res.data.data
+                this.setName(res.data.data.username);
             }
         })
     },
     methods:{
+        ...mapMutations('user',['setName']),
+        //退出
+        quit(){
+            window.localStorage.removeItem('token');
+            this.$router.push('/login');
+        },
+        //跳转页码
+        change(val){
+            console.log(val)
+            this.pagenum = val;
+            this.getList();
+        },
+        //获取当前页的数据
+        getList(){
+            this.$api.music.getList({pagenum:this.pagenum,limit:this.limit}).then(res => {
+                if(res.data.code === 1){
+                    this.musicList = res.data.data;
+                    this.total= res.data.total;
+                }
+            })
+        },
+        // 点击添加
+        addItem(){
+            this.dialogVisible = true;
+            this.editId = '';
+        },
         upload(e){
             let file = e.target.files;
             let formData = new FormData();
@@ -171,11 +215,8 @@ export default {
                                     type: 'success'
                                 });
                                 this.dialogVisible = false;
-                                let target = this.music;
-                                target.id = res.data.id;
-                                if(this.music.isup === '1'){
-                                    this.musicList.unshift(target);
-                                }
+                                //再次请求当前页的数据
+                                this.getList();
                             }else if(res.data.code === 2){
                                 this.$message({
                                     message: '该歌曲已经添加',
@@ -209,8 +250,7 @@ export default {
                         message: '删除成功',
                         type: 'success'
                     });
-                    let index = this.musicList.findIndex(item => item.id === this.delId);
-                    this.musicList.splice(index,1);
+                    this.getList();
                     this.isDel = false;
                 }
             })

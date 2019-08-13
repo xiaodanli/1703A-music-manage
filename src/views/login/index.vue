@@ -42,7 +42,7 @@ export default {
                             });
                             window.localStorage.setItem('token',res.data.token);
                             
-                            this.$router.push('/music')
+                            this.$router.replace('/music')
                         }
                     })
                 } else {

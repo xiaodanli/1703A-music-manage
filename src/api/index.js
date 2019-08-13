@@ -5,10 +5,11 @@ import request from '@/utils/request'
 let api = {
     user:{
         registry:data => request.post('/api/registry',data),
-        login:data => request.post('/api/login',data)
+        login:data => request.post('/api/login',data),
+        userinfo:() => request.get('/api/userinfo')
     },
     music:{
-        getList:() => request.get('/api/querymusic'),
+        getList:data => request.get('/api/querymusic',data),
         upload:data => request.post('/api/upload',data),
         add:data => request.post('/api/addmusic',data),
         edit:data => request.post('/api/updatemusic',data),
